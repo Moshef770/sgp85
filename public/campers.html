@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Camp Points</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      background: #f4f6fb;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 6px 28px rgba(0, 0, 0, 0.08);
+      padding: 30px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2d3a4a;
+      margin-bottom: 24px;
+    }
+
+    #selectionArea {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .form-label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+      color: #2d3a4a;
+    }
+
+    .form-select {
+      width: 200px;
+      padding: 8px 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #374151;
+    }
+
+    .info-card {
+      background: #f7fbff;
+      border: 1.5px solid #b6d5fa;
+      border-radius: 12px;
+      padding: 16px 24px;
+      font-size: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .change-link {
+      color: #4b8df8;
+      text-decoration: underline;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .points-summary-card {
+      background: #e7f4e9;
+      border: 1.5px solid #b4e1c6;
+      border-radius: 12px;
+      padding: 14px 20px;
+      color: #20603a;
+      margin-bottom: 18px;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .check-all-btn {
+      background: #4b8df8;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+
+    #submitBtn {
+      background: #34b37f;
+      color: white;
+      padding: 10px 30px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+
+    #submitBtn[disabled] {
+      background: #a7e4c4;
+      cursor: not-allowed;
+    }
+
+    #success {
+      color: #34b37f;
+      font-weight: 600;
+      text-align: center;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .checkbox-grid {
+      overflow-x: auto;
+      background: #f9fbfd;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(60,72,88,0.08);
+      padding: 18px 12px;
+    }
+
+    .checkbox-grid table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: auto;
+    }
+
+    .checkbox-grid th, .checkbox-grid td {
+      text-align: center;
+      padding: 8px 10px;
+      border: 1px solid #d9e2ef;
+      font-size: 15px;
+    }
+
+    .checkbox-grid th {
+      background: #eaf2fb;
+      font-weight: 700;
+      color: #2d3a4a;
+      z-index: 3;
+    }
+
+    .checkbox-grid th[data-row] {
+      background: #f3f6fa;
+      z-index: 4;
+      position: sticky;
+      left: 0;
+      border-right: 2px solid #e5eaf3;
+      cursor: pointer;
+    }
+
+    .checkbox-grid input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #4b8df8;
+    }
+
+    .sticky-top {
+      position: sticky;
+      top: 0;
+      background: #eaf2fb;
+      z-index: 3;
+    }
+
+    .sticky-left {
+      position: sticky;
+      left: 0;
+      background: #f3f6fa;
+      z-index: 4;
+    }
+
+    .missing {
+      background-color: #f0f0f0;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+
+      .form-select {
+        width: 100%;
+      }
+
+      #selectionArea {
+        flex-direction: column;
+        gap: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 id="gridA1">Loading Grid...</h2>
+    <form id="camperForm" onsubmit="handleSubmit(event)">
+      <div id="selectionArea">
+        <div>
+          <label class="form-label" for="bunkSelect">Bunk:</label>
+          <select id="bunkSelect" class="form-select" required onchange="onBunkChange()">
+            <option value="" selected disabled>Select bunk</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label" for="camperSelect">Name:</label>
+          <select id="camperSelect" class="form-select" required onchange="onCamperChange()">
+            <option value="" selected disabled>Select name</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="infoCardArea" style="display:none;"></div>
+      <div id="pointsSummaryArea" style="display:none;"></div>
+
+      <div id="gridArea" style="display:none;">
+        <button type="button" class="check-all-btn" id="checkAllBtn" onclick="toggleCheckAll()">Check All</button>
+        <div class="checkbox-grid" id="checkboxGrid"></div>
+        <button type="submit" id="submitBtn">Submit</button>
+      </div>
+    </form>
+    <div id="success"></div>
+  </div>
+
+<script>
+const SPREADSHEET_ID = '1H2aKZ85e3QVDW0p1FK0H9NKapUcCn734ozo-rL37G4E';
+const CAMPER_SHEET_NAME = 'Camper info';
+const APP_SHEET_NAME = 'App';
+const POINTS_SHEET_NAME = 'Points evaluation';
+
+const apiBase = 'https://opensheet.elk.sh/' + SPREADSHEET_ID + '/';
+
+let camperMap = {}, gridRows = [], gridColumns = [], gridMatrix = [];
+let gridA1 = '', gridMissing = [], selectedBunk = '', selectedCamper = '';
+let gridSelectionsLoaded = false, pointsByA1 = {};
+let colWidths = [], rowLabelWidths = [120,120];
+
+async function fetchSheet(name) {
+  const res = await fetch(apiBase + encodeURIComponent(name));
+  if (!res.ok) throw new Error('Failed to fetch ' + name);
+  return await res.json();
+}
+
+async function getBunksAndCampers() {
+  const rows = await fetchSheet(CAMPER_SHEET_NAME);
+  const bunksSet = new Set();
+  const cmap = {};
+  rows.forEach(r => {
+    const name = r['Name'] || r[0];
+    const bunk = r['Bunk'] || r[3];
+    if (!bunk) return;
+    bunksSet.add(bunk);
+    if (!cmap[bunk]) cmap[bunk] = [];
+    cmap[bunk].push(name);
+  });
+  return { bunks: Array.from(bunksSet).sort(), camperMap: cmap };
+}
+
+async function getCheckboxGridData() {
+  const rows = await fetchSheet(APP_SHEET_NAME);
+  if (!rows.length) return { columns: [], rows: [] };
+  const header = Object.keys(rows[0]);
+  const data = rows.map(r => header.map(h => r[h]));
+  const lastRow = data.length;
+  const lastCol = data[0].length;
+
+  let headerRows = 1;
+  for (let r = 1; r < data.length; r++) {
+    if (data[r][0] && data[r][0].toString().trim() !== '') {
+      headerRows = r;
+      break;
+    }
+  }
+
+  const rowLabels = data.slice(headerRows).map(row => [row[0], row[1]]);
+  const grid = data.slice(headerRows).map(row => row.slice(2));
+  const isNumberGrid = grid.map(row => row.map(cell => !isNaN(Number(cell))));
+
+  let colWidths = new Array(lastCol-2).fill(80);
+  return {
+    a1: data[0][0],
+    columns: data[0].slice(2),
+    rows: rowLabels,
+    grid: grid,
+    headerRows,
+    isNumberGrid,
+    colWidths,
+    rowLabelWidths: [120,120],
+    frozenRows: 1,
+    frozenCols: 1
+  };
+}
+
+async function getLatestPointsTotalsByA1(bunk, camper) {
+  const rows = await fetchSheet(POINTS_SHEET_NAME);
+  const searchBunk = (bunk||'').toString().trim().toLowerCase();
+  const searchCamper = (camper||'').toString().trim().toLowerCase();
+  const latest = {};
+  rows.forEach(r => {
+    const rowBunk = (r['Bunk']||r[2]||'').toString().trim().toLowerCase();
+    const rowCamper = (r['Name']||r[3]||'').toString().trim().toLowerCase();
+    const rowA1 = (r['A1']||r[1]||'').toString().trim();
+    if (rowBunk === searchBunk && rowCamper === searchCamper) {
+      const ts = new Date(r['Timestamp']||r[0]);
+      if (!latest[rowA1] || ts > latest[rowA1].timestamp) {
+        latest[rowA1] = { timestamp: ts, row: r };
+      }
+    }
+  });
+  const result = {};
+  for (const a1 in latest) {
+    const row = latest[a1].row;
+    let total = 0;
+    Object.keys(row).forEach(key => {
+      if (key.startsWith('Col') || Number.isInteger(Number(key))) {
+        const val = row[key];
+        const n = Number(val);
+        if (!isNaN(n)) total += n;
+      }
+    });
+    result[a1] = total;
+  }
+  return result;
+}
+
+async function init() {
+  const camperData = await getBunksAndCampers();
+  camperMap = camperData.camperMap;
+  camperData.bunks.forEach(bunk => {
+    const opt = document.createElement('option');
+    opt.value = opt.text = bunk;
+    bunkSelect.appendChild(opt);
+  });
+  updateCampers();
+
+  const gridData = await getCheckboxGridData();
+  gridRows = gridData.rows;
+  gridColumns = gridData.columns;
+  gridA1 = gridData.a1;
+  colWidths = gridData.colWidths;
+  rowLabelWidths = gridData.rowLabelWidths;
+  renderCheckboxGrid(gridData);
+}
+
+init();
+
+function updateCampers() {
+  const camperSelect = document.getElementById('camperSelect');
+  camperSelect.options.length = 1;
+  const bunk = document.getElementById('bunkSelect').value;
+  if (camperMap[bunk]) {
+    camperMap[bunk].forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = opt.text = name;
+      camperSelect.appendChild(opt);
+    });
+  }
+}
+
+function onBunkChange() {
+  selectedBunk = document.getElementById('bunkSelect').value;
+  updateCampers();
+  hideGridAndCard();
+}
+
+function onCamperChange() {
+  selectedCamper = document.getElementById('camperSelect').value;
+  if (selectedBunk && selectedCamper) {
+    getLatestPointsTotalsByA1(selectedBunk, selectedCamper).then(pointsObj => {
+      pointsByA1 = pointsObj;
+      showInfoCard();
+      gridSelectionsLoaded = true;
+      document.getElementById('gridArea').style.display = '';
+    });
+  }
+}
+
+function showInfoCard() {
+  document.getElementById('selectionArea').style.display = 'none';
+  document.getElementById('infoCardArea').innerHTML = `
+    <div class="info-card" onclick="changeSelection(event)">
+      <span><b>Bunk:</b> ${selectedBunk} &nbsp; <b>Name:</b> ${selectedCamper}</span>
+      <span class="change-link">Change</span>
+    </div>
+  `;
+  document.getElementById('infoCardArea').style.display = '';
+  if (pointsByA1 && Object.keys(pointsByA1).length > 0) {
+    const pts = Object.keys(pointsByA1).map(a1 => `<span>${a1}: ${pointsByA1[a1]} pts</span>`).join('');
+    document.getElementById('pointsSummaryArea').innerHTML = `<div class="points-summary-card">${pts}</div>`;
+    document.getElementById('pointsSummaryArea').style.display = '';
+  } else {
+    document.getElementById('pointsSummaryArea').style.display = 'none';
+  }
+}
+
+function changeSelection(e) {
+  e.stopPropagation();
+  document.getElementById('infoCardArea').style.display = 'none';
+  document.getElementById('pointsSummaryArea').style.display = 'none';
+  document.getElementById('selectionArea').style.display = '';
+  document.getElementById('bunkSelect').value = selectedBunk;
+  updateCampers();
+  document.getElementById('camperSelect').value = selectedCamper;
+}
+
+function hideGridAndCard() {
+  document.getElementById('gridArea').style.display = 'none';
+  gridSelectionsLoaded = false;
+}
+
+function renderCheckboxGrid(data) {
+  gridRows = data.rows;
+  gridColumns = data.columns;
+  gridA1 = data.a1 || '';
+  const isNumberGrid = data.isNumberGrid || [];
+
+  for (let i = 0; i < gridRows.length; i++) {
+    gridMissing[i] = [];
+    for (let j = 0; j < gridColumns.length; j++) {
+      gridMissing[i][j] = !isNumberGrid[i][j];
+    }
+  }
+
+  let html = '<table><colgroup>';
+  html += `<col style="width:${rowLabelWidths[0]}px;">`;
+  html += `<col style="width:${rowLabelWidths[1]}px;">`;
+  for (let j = 0; j < data.colWidths.length; j++) {
+    html += `<col style="width:${data.colWidths[j]}px;">`;
+  }
+  html += '</colgroup>';
+
+  gridRows.forEach((rowPair, i) => {
+    html += `<tr>
+      <th class="sticky-left" onclick="toggleRow(${i})">${rowPair[0]}</th>
+      <th class="sticky-left" onclick="toggleRow(${i})">${rowPair[1]}</th>`;
+    gridColumns.forEach((col, j) => {
+      const id = `cb_${i}_${j}`;
+      html += gridMissing[i][j]
+        ? `<td class="missing"></td>`
+        : `<td><label><input type="checkbox" id="${id}" onclick="updateCheckAllBtn()"></label></td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</table>';
+  document.getElementById('checkboxGrid').innerHTML = html;
+  updateCheckAllBtn?.();
+}
+
+function toggleRow(i) {
+  let allChecked = true;
+  for (let j = 0; j < gridColumns.length; j++) {
+    const cb = document.getElementById(`cb_${i}_${j}`);
+    if (cb && !cb.checked && !gridMissing[i][j]) allChecked = false;
+  }
+  for (let j = 0; j < gridColumns.length; j++) {
+    const cb = document.getElementById(`cb_${i}_${j}`);
+    if (cb && !gridMissing[i][j]) cb.checked = !allChecked;
+  }
+}
+
+function toggleColumn(j) {
+  let allChecked = true;
+  for (let i = 0; i < gridRows.length; i++) {
+    const cb = document.getElementById(`cb_${i}_${j}`);
+    if (cb && !cb.checked && !gridMissing[i][j]) allChecked = false;
+  }
+  for (let i = 0; i < gridRows.length; i++) {
+    const cb = document.getElementById(`cb_${i}_${j}`);
+    if (cb && !gridMissing[i][j]) cb.checked = !allChecked;
+  }
+}
+
+function toggleCheckAll() {
+  let anyChecked = false;
+  for (let i = 0; i < gridRows.length; i++) {
+    for (let j = 0; j < gridColumns.length; j++) {
+      const cb = document.getElementById(`cb_${i}_${j}`);
+      if (cb && cb.checked && !gridMissing[i][j]) anyChecked = true;
+    }
+  }
+  const newState = !anyChecked;
+  for (let i = 0; i < gridRows.length; i++) {
+    for (let j = 0; j < gridColumns.length; j++) {
+      const cb = document.getElementById(`cb_${i}_${j}`);
+      if (cb && !gridMissing[i][j]) cb.checked = newState;
+    }
+  }
+}
+
+function updateCheckAllBtn() {
+  let anyChecked = false;
+  let allChecked = true;
+  for (let i = 0; i < gridRows.length; i++) {
+    for (let j = 0; j < gridColumns.length; j++) {
+      const cb = document.getElementById(`cb_${i}_${j}`);
+      if (cb && !gridMissing[i][j]) {
+        if (cb.checked) anyChecked = true; else allChecked = false;
+      }
+    }
+  }
+  const btn = document.getElementById('checkAllBtn');
+  if (allChecked) btn.textContent = 'Uncheck All';
+  else btn.textContent = anyChecked ? 'Uncheck All' : 'Check All';
+}
+
+function handleSubmit(e) {
+  e.preventDefault();
+  if (!gridSelectionsLoaded) return;
+  const gridSelections = {};
+  gridRows.forEach((row, i) => {
+    gridSelections[row] = [];
+    gridColumns.forEach((col, j) => {
+      const checkbox = document.getElementById(`cb_${i}_${j}`);
+      if (checkbox && checkbox.checked && !gridMissing[i][j]) {
+        gridSelections[row].push(col);
+      }
+    });
+  });
+
+  // Here you would normally send the data to a backend or Apps Script.
+  // This demo only shows a success message.
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = "Submitting...";
+  setTimeout(() => {
+    document.getElementById('success').textContent = 'Submitted!';
+    document.getElementById('success').style.display = 'block';
+    setTimeout(() => document.getElementById('success').style.display = 'none', 3000);
+    btn.disabled = false;
+    btn.textContent = "Submit";
+  }, 500);
+}
+</script>
+</body>
+</html>
